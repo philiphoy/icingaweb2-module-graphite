@@ -85,6 +85,7 @@ class Macro
     public static function escapeMetric($str)
     {       
         $str=str_replace('.','_',$str);        
+        $str=str_replace('-','_',$str);
         $str=str_replace(' ','_',$str);
         $str=str_replace('\\','_',$str);
         $str=str_replace('/','_',$str);
