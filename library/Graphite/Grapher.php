@@ -106,7 +106,7 @@ class Grapher extends GrapherHook
         $target .= '.'. Macro::escapeMetric($metric, $this->legacyMode);
 
         if ($this->legacyMode == 'false'){
-            $target .= '.value';
+            $target .= '&value';
         }
 
         $target = $this->metricPrefix . "." . $target;
