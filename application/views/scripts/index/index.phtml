@@ -4,14 +4,14 @@
 <div class="content">
   <table class="avp" style="width: 800px; text-align: center;">
     <tr>
-      <td><a target="graph_iframe" class="icon-clock" href="<?= urldecode($this->url) ?>&from=-10min">10 minutes</a></td>
-      <td><a target="graph_iframe" class="icon-clock" href="<?= urldecode($this->url) ?>&from=-1h">1 hour</a></td>
-      <td><a target="graph_iframe" class="icon-clock" href="<?= urldecode($this->url) ?>&from=-12h" active>12 hours</a></td>
-      <td><a target="graph_iframe" class="icon-clock" href="<?= urldecode($this->url) ?>&from=-1d">1 day</a></td>
-      <td><a target="graph_iframe" class="icon-clock" href="<?= urldecode($this->url) ?>&from=-1w">1 week</a></td>
-      <td><a target="graph_iframe" class="icon-clock" href="<?= urldecode($this->url) ?>&from=-1mon">1 month</a></td>
-      <td><a target="graph_iframe" class="icon-clock" href="<?= urldecode($this->url) ?>&from=-1y">1 year</a></td>
+      <td><a target="graph_iframe" class="icon-clock" href="<?= $this->url ?>&from=-10min">10 minutes</a></td>
+      <td><a target="graph_iframe" class="icon-clock" href="<?= $this->url ?>&from=-1h">1 hour</a></td>
+      <td><a target="graph_iframe" class="icon-clock" href="<?= $this->url ?>&from=-12h" active>12 hours</a></td>
+      <td><a target="graph_iframe" class="icon-clock" href="<?= $this->url ?>&from=-1d">1 day</a></td>
+      <td><a target="graph_iframe" class="icon-clock" href="<?= $this->url ?>&from=-1w">1 week</a></td>
+      <td><a target="graph_iframe" class="icon-clock" href="<?= $this->url ?>&from=-1mon">1 month</a></td>
+      <td><a target="graph_iframe" class="icon-clock" href="<?= $this->url ?>&from=-1y">1 year</a></td>
     </tr>
   </table>
-  <iframe name ="graph_iframe" src="<?= urldecode($this->url) ?>&from=-1d" style="height: 700px; width: 800px" frameborder="no"></iframe>
+  <iframe name ="graph_iframe" src="<?= $this->url ?>&from=-1d" style="height: 800px; width: 900px" frameborder="no"></iframe>
 </div>

@@ -9,6 +9,14 @@
 [graphite]
 metric_prefix = icinga2
 base_url = http://graphite.com/render?
+
+; fetch remote image and inline the data
+remote_fetch = true
+; verify remote certificate
+remote_verify_peer = true
+; verify remote peer name
+remote_verify_peer_name = true
+
 legacy_mode = false
 ;if legacy mode is false (2.4 and newer):
 service_name_template = "$host.name$.services.$service.name$.$service.check_command$.perfdata"
