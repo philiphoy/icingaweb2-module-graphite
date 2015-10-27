@@ -118,19 +118,16 @@ class Grapher extends GrapherHook
         }
 
         $target = $this->metricPrefix . "." . $target;
-
 	$imgUrl = $this->getImgUrl($target);
-	$largeImgUrl = $this->getLargeImgUrl($target);
 
 	if ($this->remoteFetch) {
 	    $imgUrl = $this->inlineImage($imgUrl);
-	    $largeImgUrl = $this->inlineImage($largeImgUrl);
             $url = Url::fromPath('graphite', array(
 		'graphite_url' => urlencode($target),
 	    ));
 	} else {
             $url = Url::fromPath('graphite', array(
-                'graphite_url' => urlencode($largeImgUrl)
+                'graphite_url' => urlencode($this->getLargeImgUrl($target))
             ));
 	}
 
@@ -165,7 +162,12 @@ class Grapher extends GrapherHook
 	return $this->baseUrl . Macro::resolveMacros($this->imageUrlMacro, array("target" => $target), $this->legacyMode, false);
     }
 
-    public function getLargeImgUrl($target) {
-       	return $this->baseUrl . Macro::resolveMacros($this->largeImageUrlMacro, array("target" => $target), $this->legacyMode,  false);
+    public function getLargeImgUrl($target, $from=false) {
+       	$url = $this->baseUrl . Macro::resolveMacros($this->largeImageUrlMacro, array("target" => $target), $this->legacyMode,  false);
+	if ($from !== false) {
+		$url = $url.'&from='.$from;
+	}
+
+	return $url;
     }
 }

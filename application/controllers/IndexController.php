@@ -31,8 +31,9 @@ class Graphite_IndexController extends ActionController
         $this->_helper->layout()->disableLayout();
 
 	$target = $this->getParam('target');
+	$from = $this->getParam('from');
         
-	$largeImgUrl = $this->grapher->getLargeImgUrl($target);
+	$largeImgUrl = $this->grapher->getLargeImgUrl($target, $from);
 
 	if ($this->grapher->getRemoteFetch()) {
 	    $largeImgUrl = $this->grapher->inlineImage($largeImgUrl);
