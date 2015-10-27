@@ -24,6 +24,10 @@ class Grapher extends GrapherHook
     protected $largeImageUrlMacro = '&target=$target$&source=0&width=800&height=700&colorList=049BAF&lineMode=connected';
     protected $legacyMode = 'false';
 
+    protected $remoteFetch = false;
+    protected $remoteVerifyPeer = true;
+    protected $remoteVerifyPeerName = true;
+
     protected function init()
     {
         $cfg = Config::module('graphite')->getSection('graphite');
@@ -34,6 +38,10 @@ class Grapher extends GrapherHook
         $this->hostMacro = $cfg->get('host_name_template', $this->hostMacro);
         $this->imageUrlMacro = $cfg->get('graphite_args_template', $this->imageUrlMacro);
         $this->largeImageUrlMacro = $cfg->get('graphite_large_args_template', $this->largeImageUrlMacro);
+
+        $this->remoteFetch = $cfg->get('remote_fetch', $this->remoteFetch);
+        $this->remoteVerifyPeer = $cfg->get('remote_verify_peer', $this->remoteVerifyPeer);
+        $this->remoteVerifyPeerName = $cfg->get('remote_verify_peer_name', $this->remoteVerifyPeerName);
     }
 
     public function has(MonitoredObject $object)
@@ -110,15 +118,18 @@ class Grapher extends GrapherHook
         }
 
         $target = $this->metricPrefix . "." . $target;
+	$imgUrl = $this->getImgUrl($target);
 
-
-        $imgUrl = $this->baseUrl . Macro::resolveMacros($this->imageUrlMacro, array("target" => $target), $this->legacyMode, false);
-
-        $largeImgUrl = $this->baseUrl . Macro::resolveMacros($this->largeImageUrlMacro, array("target" => $target), $this->legacyMode,  false);
-
-        $url = Url::fromPath('graphite', array(
-            'graphite_url' => urlencode($largeImgUrl)
-        ));
+	if ($this->remoteFetch) {
+	    $imgUrl = $this->inlineImage($imgUrl);
+            $url = Url::fromPath('graphite', array(
+		'graphite_url' => urlencode($target),
+	    ));
+	} else {
+            $url = Url::fromPath('graphite', array(
+                'graphite_url' => urlencode($this->getLargeImgUrl($target))
+            ));
+	}
 
         $html = '<a href="%s" title="%s"><img src="%s" alt="%s" width="300" height="120" /></a>';
 
@@ -129,5 +140,34 @@ class Grapher extends GrapherHook
             $imgUrl,
             $metric
        );
+    }
+
+    public function inlineImage($url) {
+        $ctx = stream_context_create(array('ssl' => array("verify_peer"=>$this->remoteVerifyPeer, "verify_peer_name"=>$this->remoteVerifyPeerName)));
+
+        $img = @file_get_contents($url, false, $ctx);
+        $error = error_get_last();
+        if ($error === null) {
+            return 'data:image/png;base64,'.base64_encode($img);
+        } else {
+            throw new \ErrorException($error['message']);
+        }
+    }
+
+    public function getRemoteFetch() {
+        return $this->remoteFetch;
+    }
+
+    public function getImgUrl($target) {
+	return $this->baseUrl . Macro::resolveMacros($this->imageUrlMacro, array("target" => $target), $this->legacyMode, false);
+    }
+
+    public function getLargeImgUrl($target, $from=false) {
+       	$url = $this->baseUrl . Macro::resolveMacros($this->largeImageUrlMacro, array("target" => $target), $this->legacyMode,  false);
+	if ($from !== false) {
+		$url = $url.'&from='.$from;
+	}
+
+	return $url;
     }
 }
