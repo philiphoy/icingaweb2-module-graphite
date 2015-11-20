@@ -17,7 +17,7 @@ class Grapher extends GrapherHook
     protected $hasTinyPreviews = true;
     protected $graphiteConfig;
     protected $baseUrl = 'http://graphite.com/render/?';
-    protected $metricPrefix = 'icinga';
+    protected $metricPrefix = 'icinga2';
     protected $serviceMacro = '$host.name$.services.$service.name$.$service.check_command$.perfdata';
     protected $hostMacro = '$host.name$.host.$host.check_command$.perfdata';
     protected $imageUrlMacro = '&target=$target$&source=0&width=300&height=120&hideAxes=true&lineWidth=2&hideLegend=true&colorList=049BAF';
@@ -28,8 +28,11 @@ class Grapher extends GrapherHook
     {
         $cfg = Config::module('graphite')->getSection('graphite');
         $this->baseUrl = rtrim($cfg->get('base_url', $this->baseUrl), '/');
-        $this->metricPrefix = $cfg->get('metric_prefix', $this->metricPrefix);
         $this->legacyMode = filter_var($cfg->get('legacy_mode', $this->legacyMode), FILTER_VALIDATE_BOOLEAN);
+        if ($this->legacyMode == true) {
+            $this->metricPrefix = 'icinga';
+        }
+        $this->metricPrefix = $cfg->get('metric_prefix', $this->metricPrefix);
         $this->serviceMacro = $cfg->get('service_name_template', $this->serviceMacro);
         $this->hostMacro = $cfg->get('host_name_template', $this->hostMacro);
         $this->imageUrlMacro = $cfg->get('graphite_args_template', $this->imageUrlMacro);
