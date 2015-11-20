@@ -20,8 +20,9 @@ class Grapher extends GrapherHook
     protected $metricPrefix = 'icinga';
     protected $serviceMacro = '$host.name$.services.$service.name$.$service.check_command$.perfdata';
     protected $hostMacro = '$host.name$.host.$host.check_command$.perfdata';
-    protected $imageUrlMacro = '&target=$target$&source=0&width=300&height=120&hideAxes=true&lineWidth=2&hideLegend=true&colorList=049BAF';
-    protected $largeImageUrlMacro = '&target=$target$&source=0&width=800&height=700&colorList=049BAF&lineMode=connected';
+    protected $imageUrlMacro = '&target=$target$&source=0&width=300&height=120&hideAxes=true&lineWidth=2&hideLegend=true&colorList=049BAF,FFAA44,FFAA99';
+    protected $largeImageUrlMacro = '&target=$target$&source=0&width=800&height=700&colorList=049BAF,FFAA44,FFAA99&lineMode=connected';
+    protected $thresholdImageUrlMacro = '&target=threshold($warning$,\'warning\',orange)&target=threshold($critical$,\'critical\',red)';
     protected $legacyMode = false;
 
     protected function init()
@@ -34,6 +35,7 @@ class Grapher extends GrapherHook
         $this->hostMacro = $cfg->get('host_name_template', $this->hostMacro);
         $this->imageUrlMacro = $cfg->get('graphite_args_template', $this->imageUrlMacro);
         $this->largeImageUrlMacro = $cfg->get('graphite_large_args_template', $this->largeImageUrlMacro);
+        $this->thresholdImageUrlMacro = $cfg->get('graphite_threshold_args_template', $this->thresholdImageUrlMacro);
     }
 
     public function has(MonitoredObject $object)
@@ -74,10 +76,11 @@ class Grapher extends GrapherHook
                ."<tbody>\n";
 
         foreach ($graphiteKeys as $metric) {
+            $thresholds = self::getMetricThresholds($object, $metric);
             $html .= "<tr><th>\n"
                   . "$metric\n"
                   . '</th><td>'
-                  . $this->getPreviewImage($host, $service, $metric)
+                  . $this->getPreviewImage($host, $service, $metric, $thresholds)
                   . "</td>\n"
                   . "<tr>\n";
         }
@@ -112,9 +115,11 @@ class Grapher extends GrapherHook
         $target = $this->metricPrefix . "." . $target;
 
 
-        $imgUrl = $this->baseUrl . Macro::resolveMacros($this->imageUrlMacro, array("target" => $target), $this->legacyMode, false);
+        $imgUrl = $this->baseUrl . Macro::resolveMacros($this->imageUrlMacro, array("target" => $target), $this->legacyMode, false)
+                                 . Macro::resolveMacros($this->thresholdImageUrlMacro, $thresholds, $this->legacyMode,false);
 
-        $largeImgUrl = $this->baseUrl . Macro::resolveMacros($this->largeImageUrlMacro, array("target" => $target), $this->legacyMode,  false);
+        $largeImgUrl = $this->baseUrl . Macro::resolveMacros($this->largeImageUrlMacro, array("target" => $target), $this->legacyMode,  false)
+                                      . Macro::resolveMacros($this->thresholdImageUrlMacro, $thresholds, $this->legacyMode,false);
 
         $url = Url::fromPath('graphite', array(
             'graphite_url' => urlencode($largeImgUrl)
@@ -129,5 +134,21 @@ class Grapher extends GrapherHook
             $imgUrl,
             $metric
        );
+    }
+
+    /**
+     *  Return threshold values for metrics.
+     *
+     *  @return array
+     */
+    private function getMetricThresholds($object, $metric) {
+        foreach (PerfdataSet::fromString($object->perfdata)->asArray() as $pd) {
+            if ($pd->getLabel() === $metric) {
+                return array ( 
+                    'warning'  => $pd->getWarningThreshold(),
+                    'critical' => $pd->getcriticalThreshold() 
+                );
+            }
+        }
     }
 }
