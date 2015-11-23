@@ -7,13 +7,14 @@
 <p><?= $this->escapedHint ?></p>
 <pre>
 [graphite]
-metric_prefix = icinga2
 base_url = http://graphite.com/render?
 legacy_mode = false
 ;if legacy mode is false (2.4 and newer):
+metric_prefix = icinga2
 service_name_template = "$host.name$.services.$service.name$.$service.check_command$.perfdata"
 host_name_template = "$host.name$.host.$host.check_command$.perfdata"
 ;if legacy mode is true (pre 2.4):
+;metric_prefix = icinga
 ;service_name_template = "$host.name$.services.$service.name$.$service.check_command$"
 ;host_name_template = "$host.name$.host.$host.check_command$"
 ;this template is used for the small image, macro $target$ can used.
