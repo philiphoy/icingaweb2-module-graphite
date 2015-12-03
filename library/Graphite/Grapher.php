@@ -95,7 +95,9 @@ class Grapher extends GrapherHook
 
     private function getPreviewImage($host, $service, $metric)
     {
-
+        // metrics can contain chars which have to be replaced, too
+        $metric = Macro::escapeMetric($metric, $this->legacyMode);
+        
         if ($host != null){
             $target = Macro::resolveMacros($this->hostMacro, $host, $this->legacyMode, true);
         } elseif  ($service != null ){
