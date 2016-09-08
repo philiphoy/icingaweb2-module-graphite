@@ -121,7 +121,11 @@ class Grapher extends GrapherHook
 
         $this->getKeysAndLabels(array(), $object->customvars);
         if (empty($this->graphiteKeys)) {
-          $this->getPerfDataKeys($object);
+            $this->getPerfDataKeys($object);
+        }
+        if (!empty($object->customvars["graphite_disable"])) {
+            $this->graphiteKeys = array();
+            $this->graphiteLabels = array();
         }
 
         if ($object instanceof Host) {

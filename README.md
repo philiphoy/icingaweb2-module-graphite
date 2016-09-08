@@ -90,10 +90,15 @@ Composite graph definitions can get long and cumbersome, so you can define Label
     vars.graphite_keys = ["{used,max}", "{currentThreadsBusy,currentThreadCount}"]
     vars.graphite_labels = ["Heap", "Threads"]
 
+### Removing graphs
+To disable all graphs, add the following to your Service definition.  Note that you can put any string as the value; the presence of this variable is enough.
+
+    vars.grpahite_disable = "x"
+
 ## Hats off to
 
 This module borrows a lot from https://github.com/Icinga/icingaweb2-module-pnp4nagios
 
-## What it looks like		
+## What it looks like
 
 ![screen shot of graphite graph](https://raw.githubusercontent.com/philiphoy/icingaweb2-module-graphite/master/Capture.PNG)
