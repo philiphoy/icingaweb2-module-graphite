@@ -37,6 +37,18 @@ class Grapher extends GrapherHook
     protected $remoteVerifyPeer = true;
     protected $remoteVerifyPeerName = true;
 
+    protected $grafana_enabled = false;
+    protected $grafana_url = "http://myserver.com:3000/grafana/dashboard/db";
+    protected $grafana_url_postfix = "&panelId=1&fullscreen";
+    protected $grafana_dashboard_host = "icinga2-graphiteplugin-host-link";
+    protected $grafana_dashboard_service = "icinga2-graphiteplugin-service-link";
+    protected $grafana_dashboard_metric = "icinga2-graphiteplugin-metric-link";
+    protected $grafana_templatevar_hostname = "HOST";
+    protected $grafana_templatevar_servicename = "SERVICE";
+    protected $grafana_templatevar_metricname = "METRIC";
+    protected $grafana_link_text = "Show in Grafana";
+    protected $grafana_link_target = "_blank";
+
     protected function init()
     {
         $cfg = Config::module('graphite')->getSection('graphite');
@@ -56,6 +68,19 @@ class Grapher extends GrapherHook
         $this->remoteFetch = filter_var($cfg->get('remote_fetch', $this->remoteFetch), FILTER_VALIDATE_BOOLEAN);
         $this->remoteVerifyPeer = filter_var($cfg->get('remote_verify_peer', $this->remoteVerifyPeer), FILTER_VALIDATE_BOOLEAN);
         $this->remoteVerifyPeerName = filter_var($cfg->get('remote_verify_peer_name', $this->remoteVerifyPeerName), FILTER_VALIDATE_BOOLEAN);
+
+        $grafana_cfg = Config::module('graphite')->getSection('grafana');
+        $this->grafana_enabled = filter_var($grafana_cfg->get('enabled', $this->grafana_enabled), FILTER_VALIDATE_BOOLEAN);
+        $this->grafana_url = rtrim($grafana_cfg->get('url', $this->grafana_url), '/');
+        $this->grafana_url_postfix = $grafana_cfg->get('url_postfix', $this->grafana_url_postfix);
+        $this->grafana_dashboard_host = $grafana_cfg->get('dashboard_host', $this->grafana_dashboard_host);
+        $this->grafana_dashboard_service = $grafana_cfg->get('dashboard_service', $this->grafana_dashboard_service);
+        $this->grafana_dashboard_metric = $grafana_cfg->get('dashboard_metric', $this->grafana_dashboard_metric);
+        $this->grafana_templatevar_hostname = $grafana_cfg->get('templatevar_hostname', $this->grafana_templatevar_hostname);
+        $this->grafana_templatevar_servicename = $grafana_cfg->get('templatevar_servicename', $this->grafana_templatevar_servicename);
+        $this->grafana_templatevar_metricname = $grafana_cfg->get('templatevar_metricname', $this->grafana_templatevar_metricname);
+        $this->grafana_link_text = $grafana_cfg->get('link_text', $this->grafana_link_text);
+        $this->grafana_link_target = $grafana_cfg->get('link_target', $this->grafana_link_target);
     }
 
     private function parseGrapherConfig($graphite_vars)
@@ -103,7 +128,7 @@ class Grapher extends GrapherHook
         }
     }
 
-    private function getPreviewImage($host, $service, $metric)
+    private function resolveMetricPath($host, $service, $metric)
     {
         if ($host != null){
             $target = Macro::resolveMacros($this->hostMacro, $host, $this->legacyMode, true);
@@ -121,6 +146,12 @@ class Grapher extends GrapherHook
             ), $this->legacyMode, false, false);
         }
         $target = Macro::resolveMacros($target, array("metric"=>$metric), $this->legacyMode, true, true);
+        return $target;
+    }
+
+    private function getPreviewImage($host, $service, $metric)
+    {
+        $target = $this->resolveMetricPath($host, $service, $metric);
         $imgUrl = $this->getImgUrl($target);
 
         if ($this->remoteFetch) {
@@ -181,19 +212,42 @@ class Grapher extends GrapherHook
             return '';
         }
 
-        $html = "<table class=\"avp newsection\">\n"
+        $html = "";
+        if ($this->grafana_enabled) {
+            if (count($this->graphiteKeys) != 0) {
+                if ($host != null) {
+                    $hostname = Macro::resolveMacros("\$host.name\$", $host, $this->legacyMode, true);
+                    $html .= "<a class='action-link' href='$this->grafana_url/$this->grafana_dashboard_host?var-$this->grafana_templatevar_hostname=$hostname$this->grafana_url_postfix' target='$this->grafana_link_target' title='Show host performancedata in Grafana' aria-label='Show host performancedata in Grafana'><i aria-hidden='true' class='icon-chart-bar'></i> $this->grafana_link_text</a>";
+                }
+                if ($service != null) {
+                    $hostname = Macro::resolveMacros("\$host.name\$", $service, $this->legacyMode, true);
+                    $servicename = Macro::resolveMacros("\$service.name\$", $service, $this->legacyMode, true);
+                    $html .= "<a class='action-link' href='$this->grafana_url/$this->grafana_dashboard_service?var-$this->grafana_templatevar_hostname=$hostname&var-$this->grafana_templatevar_servicename=$servicename$this->grafana_url_postfix' target='$this->grafana_link_target' title='Show service performancedata in Grafana' aria-label='Show service performancedata in Grafana'><i aria-hidden='true' class='icon-chart-bar'></i> $this->grafana_link_text</a>";
+                }
+            }
+        }
+
+        $html .= "<table class=\"avp newsection\">\n"
                ."<tbody>\n";
 
         for ($key = 0; $key < count($this->graphiteKeys); $key++) {
+            $metric_path = $this->resolveMetricPath($host, $service, $this->graphiteKeys[$key]);
             $html .= "<tr><th>\n"
                   . $this->graphiteLabels[$key]
-                  . '</th><td>'
+                  . '</th>';
+
+            if ($this->grafana_enabled) {
+                $html .= "<td style='width: 20px'><a class='action-link' href='$this->grafana_url/$this->grafana_dashboard_metric?var-$this->grafana_templatevar_metricname=$metric_path$this->grafana_url_postfix' target='$this->grafana_link_target' title='Show metric in Grafana' aria-label='Show metric in Grafana'><i aria-hidden='true' class='icon-chart-bar'></i></a></td>";
+            }
+
+            $html .= '<td>'
                   . $this->getPreviewImage($host, $service, $this->graphiteKeys[$key])
                   . "</td>\n"
                   . "<tr>\n";
         }
 
         $html .= "</tbody></table>\n";
+
         return $html;
     }
 

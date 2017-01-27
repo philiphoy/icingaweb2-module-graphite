@@ -35,5 +35,19 @@ graphite_area_mode = all
 graphite_area_alpha = 0.1
 graphite_summarize_interval = 10min
 graphite_color_list = 049BAF,EE1D00,04B06E,0446B0,871E10,CB315D,B06904,B0049C
+
+[grafana]
+enabled = true
+url = "https://myhost.com/grafana/dashboard/db"
+url_postfix = "&panelId=1&fullscreen&theme=light"
+dashboard_host = "myhostdashboard"
+dashboard_service = "myservicedashboard"
+dashboard_metric = "mymetricdashboard"
+templatevar_hostname = "MYHOSTVAR"
+templatevar_servicename = "MYSERVICEVAR"
+templatevar_metricname = "MYMETRICVAR"
+link_text = "Link to grafana"
+link_target = ""
+
 </pre>
 </div>
