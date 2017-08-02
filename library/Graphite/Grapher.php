@@ -21,7 +21,7 @@ class Grapher extends GrapherHook
     protected $hostMacro = 'icinga2.$host.name$.host.$host.check_command$.perfdata.$metric$.value';
     protected $imageUrlMacro = '&target=$target$&source=0&width=300&height=120&hideAxes=true&lineWidth=2&hideLegend=true&colorList=$colorList$&areaMode=$areaMode$&areaAlpha=$areaAlpha$';
     protected $largeImageUrlMacro = '&target=$target$&source=0&width=800&height=700&colorList=$colorList$&lineMode=connected&areaMode=$areaMode$&areaAlpha=$areaAlpha$';
-    protected $DerivativeMacro = 'summarize(nonNegativeDerivative($target$),\'$summarizeInterval$\', \'$summarizeFunc$\')';
+    protected $DerivativeMacro = 'summarize(nonNegativeDerivative($target$),%27$summarizeInterval$%27,%27$summarizeFunc$%27)';
     protected $legacyMode = false;
     protected $graphiteKeys = array();
     protected $graphiteLabels = array();
